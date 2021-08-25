@@ -70,51 +70,6 @@ class ProductController extends Controller
         }
     }
 
-    private function commonImageUpload( $request, $productId )
-    {
-        if(empty($request->images)){
-            $response = [
-                'images' => 'No image found to upload',
-            ];
-        }
-
-        $data = null;
-        $allowedfileExtension=['pdf','jpg','png'];
-
-        foreach($request->file( 'images' ) as $image){
-
-            // Processing image
-            $fileExtention = $image->getClientOriginalExtension();
-            $fileName = date( 'Ymdhis.' ) . $fileExtention;
-            $imageUploadResponse = Image::make( $image )->save( $this->productImagePath . $fileName );
-
-            // Push into array for saving all together
-            if(in_array($fileExtention,$allowedfileExtension)){
-                $temp = null;
-                $temp['product_id'] = $productId;
-                $temp['image'] = $fileName;
-    
-                $data[] = $temp;
-            }else {
-                $response = [
-                    'images_message' => 'Invalid file format',
-                    'image_status' => 422
-                ];
-
-                return $response;
-            }
-            
-        }
-
-        ProductImage::insert($data);
-        $response = [
-            'images_message' => 'Iamage upload successfully',
-            'image_status' => 202
-        ];
-
-        return $response;
-
-    }
 
     /**
      * Display the specified resource.
@@ -175,10 +130,16 @@ class ProductController extends Controller
             return response($response, 417);
 
         }else{
+        
+            // Upload multiple image
+            $imageResponse = $this->commonImageUpload( $request, $product->id );
+
             $response = [
                 'message' => 'Product updated successfully',
                 'product' => $updatedProduct,
             ];
+
+            $response = array_merge($response, $imageResponse);
     
             return response($response, 202);
         }
@@ -194,12 +155,14 @@ class ProductController extends Controller
     {
         if(!$product){
             $response = [
-                'message' => 'Product update fail',
+                'message' => 'Product delettion fail',
             ];
     
             return response($response, 404);
 
         }else{
+
+            $product->productImages()->delete();
             $product->delete();
 
             $response = [
@@ -219,6 +182,53 @@ class ProductController extends Controller
     public function search($name)
     {
         return Product::where('name', 'like', '%'.$name.'%')->get();
+    }
+
+
+    private function commonImageUpload( $request, $productId )
+    {
+        if(empty($request->images)){
+            $response = [
+                'images' => 'No image found to upload',
+            ];
+        }
+
+        $data = null;
+        $allowedfileExtension=['pdf','jpg','png'];
+
+        foreach($request->file( 'images' ) as $image){
+
+            // Processing image
+            $fileExtention = $image->getClientOriginalExtension();
+            $fileName = date( 'Ymdhis.' ) . $fileExtention;
+            $imageUploadResponse = Image::make( $image )->save( $this->productImagePath . $fileName );
+
+            // Push into array for saving all together
+            if(in_array($fileExtention,$allowedfileExtension)){
+                $temp = null;
+                $temp['product_id'] = $productId;
+                $temp['image'] = $fileName;
+    
+                $data[] = $temp;
+            }else {
+                $response = [
+                    'images_message' => 'Invalid file format',
+                    'image_status' => 422
+                ];
+
+                return $response;
+            }
+            
+        }
+
+        ProductImage::insert($data);
+        $response = [
+            'images_message' => 'Iamage upload successfully',
+            'image_status' => 202
+        ];
+
+        return $response;
+
     }
 
     

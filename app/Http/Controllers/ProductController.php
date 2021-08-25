@@ -3,10 +3,20 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\ProductImage;
 use Illuminate\Http\Request;
+use Image;
 
 class ProductController extends Controller
 {
+
+    private $productImagePath;
+
+    public function __construct()
+    {
+        $this->productImagePath = config( 'constants.all_image_path.products_image_path' );
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -24,7 +34,7 @@ class ProductController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
-    {
+    {   
         $request->validate([
             'name' => ['required', 'max:255'],
             'slug' => ['required'],
@@ -35,6 +45,8 @@ class ProductController extends Controller
 
         $product = Product::create($request->all());
 
+        
+
         if(!$product){
             $response = [
                 'message' => 'Product creation failed',
@@ -43,13 +55,65 @@ class ProductController extends Controller
             return response($response, 417);
 
         }else{
+
+            // Upload multiple image
+            $imageResponse = $this->commonImageUpload( $request, $product->id );
+
             $response = [
                 'message' => 'Product created successfully',
                 'product' => $product,
             ];
+
+            $response = array_merge($response, $imageResponse);
     
             return response($response, 201);
         }
+    }
+
+    private function commonImageUpload( $request, $productId )
+    {
+        if(empty($request->images)){
+            $response = [
+                'images' => 'No image found to upload',
+            ];
+        }
+
+        $data = null;
+        $allowedfileExtension=['pdf','jpg','png'];
+
+        foreach($request->file( 'images' ) as $image){
+
+            // Processing image
+            $fileExtention = $image->getClientOriginalExtension();
+            $fileName = date( 'Ymdhis.' ) . $fileExtention;
+            $imageUploadResponse = Image::make( $image )->save( $this->productImagePath . $fileName );
+
+            // Push into array for saving all together
+            if(in_array($fileExtention,$allowedfileExtension)){
+                $temp = null;
+                $temp['product_id'] = $productId;
+                $temp['image'] = $fileName;
+    
+                $data[] = $temp;
+            }else {
+                $response = [
+                    'images_message' => 'Invalid file format',
+                    'image_status' => 422
+                ];
+
+                return $response;
+            }
+            
+        }
+
+        ProductImage::insert($data);
+        $response = [
+            'images_message' => 'Iamage upload successfully',
+            'image_status' => 202
+        ];
+
+        return $response;
+
     }
 
     /**
@@ -58,9 +122,15 @@ class ProductController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Product $product)
     {
-        $product = Product::find($id);
+        if(!$product){
+            $response = [
+                'message' => 'Product not found',
+            ];
+    
+            return response($response, 404);
+        }
 
         $response = [
             'message' => 'Product found successfully',
@@ -150,4 +220,6 @@ class ProductController extends Controller
     {
         return Product::where('name', 'like', '%'.$name.'%')->get();
     }
+
+    
 }

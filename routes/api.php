@@ -3,6 +3,8 @@
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\TagController;
+use App\Http\Controllers\ReviewController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -22,6 +24,9 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', [UserController::class, 'register']);
 Route::post('/login', [UserController::class, 'login']);
 
+// Review
+Route::post('/review/store', [ReviewController::class, 'store']);
+
 Route::group(['middleware' => ['auth:sanctum']], function(){
 
     // Product 
@@ -29,7 +34,10 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
     Route::resource('products', ProductController::class);
 
     //Category
-    Route::resource('products', CategoryController::class);
+    Route::resource('categorys', CategoryController::class);
+
+    //Tag
+    Route::resource('tags', TagController::class)->except(['create','edit']);
 
     Route::post('/logout', [UserController::class, 'logout']);
 });

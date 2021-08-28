@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Category;
+use App\Models\Tag;
 
-class CategoryController extends Controller
+class TagController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -14,9 +14,9 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        $categories = Category::all();
+        $tags = Tag::all();
 
-        return response()->json($categories, 201);
+        return response()->json($tags, 201);
     }
 
 
@@ -32,19 +32,19 @@ class CategoryController extends Controller
             'name' => ['required', 'max:255']
         ]);
 
-        $category = Category::create($request->all());
+        $tag = Tag::create($request->all());
 
-        if(!$category){
+        if(!$tag){
             $response = [
-                "message" => "Category creation failed",
+                "message" => "Tag creation failed",
             ];
     
             return response()->json($response, 417);
         }else{
 
             $response = [
-                "message" => "Category created successfully",
-                "category" => $category,
+                "message" => "Tag created successfully",
+                "tag" => $tag,
             ];
     
             return response()->json($response, 201);
@@ -57,24 +57,23 @@ class CategoryController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show(Category $category)
+    public function show(Tag $tag)
     {
-        if(!$category){
+        if(!$tag){
             $response = [
-                "message" => "Category not found",
+                "message" => "Tag not found",
             ];
     
             return response()->json($response, 404);
         }
 
         $response = [
-            "message" => "Category found successfully",
-            "category" => $category,
+            "message" => "Tag found successfully",
+            "tag" => $tag,
         ];
 
         return response()->json($response, 302);
     }
-
 
     /**
      * Update the specified resource in storage.
@@ -83,11 +82,11 @@ class CategoryController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Category $category)
+    public function update(Request $request, Tag $tag)
     {
-        if(!$category){
+        if(!$tag){
             $response = [
-                "message" => "Category not found",
+                "message" => "Tag not found",
             ];
     
             return response()->json($response, 404);
@@ -97,11 +96,11 @@ class CategoryController extends Controller
             'name' => ['required', 'max:255'],
         ]);
 
-        $updatedCategory = $category->update($request->all());
+        $updatedTag = $tag->update($request->all());
 
-        if(!$updatedCategory){
+        if(!$updatedTag){
             $response = [
-                "message" => "Category update fail",
+                "message" => "Tag update fail",
             ];
     
             return response()->json($response, 417);
@@ -109,8 +108,8 @@ class CategoryController extends Controller
         }else{
 
             $response = [
-                "message" => "Category updated successfully",
-                "category" => $updatedCategory,
+                "message" => "Tag updated successfully",
+                "tag" => $updatedTag,
             ];
     
             return response()->json($response, 202);
@@ -123,20 +122,20 @@ class CategoryController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Category $category)
+    public function destroy(Tag $tag)
     {
-        if(!$category){
+        if(!$tag){
             $response = [
-                "message" => "Category delettion fail",
+                "message" => "Tag delettion fail",
             ];
     
             return response()->json($response, 404);
 
         }else{
-            $category->delete();
+            $tag->delete();
 
             $response = [
-                "message" => "Category delettion complete",
+                "message" => "Tag delettion complete",
             ];
     
             return response()->json($response, 202);

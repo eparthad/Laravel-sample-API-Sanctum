@@ -49,10 +49,10 @@ class ProductController extends Controller
 
         if(!$product){
             $response = [
-                'message' => 'Product creation failed',
+                "message" => "Product creation failed",
             ];
     
-            return response($response, 417);
+            return response()->json($response, 417);
 
         }else{
 
@@ -60,13 +60,13 @@ class ProductController extends Controller
             $imageResponse = $this->commonImageUpload( $request, $product->id );
 
             $response = [
-                'message' => 'Product created successfully',
-                'product' => $product,
+                "message" => "Product created successfully",
+                "product" => $product,
             ];
 
             $response = array_merge($response, $imageResponse);
     
-            return response($response, 201);
+            return response()->json($response, 201);
         }
     }
 
@@ -81,18 +81,18 @@ class ProductController extends Controller
     {
         if(!$product){
             $response = [
-                'message' => 'Product not found',
+                "message" => "Product not found",
             ];
     
-            return response($response, 404);
+            return response()->json($response, 404);
         }
 
         $response = [
-            'message' => 'Product found successfully',
-            'product' => $product,
+            "message" => "Product found successfully",
+            "product" => $product,
         ];
 
-        return response($response, 302);
+        return response()->json($response, 302);
     }
 
     /**
@@ -106,10 +106,10 @@ class ProductController extends Controller
     { 
         if(!$product){
             $response = [
-                'message' => 'Product not found',
+                "message" => "Product not found",
             ];
     
-            return response($response, 404);
+            return response()->json($response, 404);
         }
         
         $request->validate([
@@ -124,10 +124,10 @@ class ProductController extends Controller
 
         if(!$updatedProduct){
             $response = [
-                'message' => 'Product update fail',
+                "message" => "Product update fail",
             ];
     
-            return response($response, 417);
+            return response()->json($response, 417);
 
         }else{
         
@@ -135,13 +135,13 @@ class ProductController extends Controller
             $imageResponse = $this->commonImageUpload( $request, $product->id );
 
             $response = [
-                'message' => 'Product updated successfully',
-                'product' => $updatedProduct,
+                "message" => "Product updated successfully",
+                "product" => $updatedProduct,
             ];
 
             $response = array_merge($response, $imageResponse);
     
-            return response($response, 202);
+            return response()->json($response, 202);
         }
     }
 
@@ -155,10 +155,10 @@ class ProductController extends Controller
     {
         if(!$product){
             $response = [
-                'message' => 'Product delettion fail',
+                "message" => "Product delettion fail",
             ];
     
-            return response($response, 404);
+            return response()->json($response, 404);
 
         }else{
 
@@ -166,10 +166,10 @@ class ProductController extends Controller
             $product->delete();
 
             $response = [
-                'message' => 'Product delettion complete',
+                "message" => "Product delettion complete",
             ];
     
-            return response($response, 202);
+            return response()->json($response, 202);
         }
     }
 
@@ -189,7 +189,7 @@ class ProductController extends Controller
     {
         if(empty($request->images)){
             $response = [
-                'images' => 'No image found to upload',
+                "images" => "No image found to upload",
             ];
         }
 
@@ -201,6 +201,8 @@ class ProductController extends Controller
             // Processing image
             $fileExtention = $image->getClientOriginalExtension();
             $fileName = date( 'Ymdhis.' ) . $fileExtention;
+
+            // Save image in product directory
             $imageUploadResponse = Image::make( $image )->save( $this->productImagePath . $fileName );
 
             // Push into array for saving all together
@@ -212,8 +214,8 @@ class ProductController extends Controller
                 $data[] = $temp;
             }else {
                 $response = [
-                    'images_message' => 'Invalid file format',
-                    'image_status' => 422
+                    "images_message" => "Invalid file format",
+                    "image_status" => 422
                 ];
 
                 return $response;
@@ -221,10 +223,12 @@ class ProductController extends Controller
             
         }
 
+        // Save all image 
         ProductImage::insert($data);
+
         $response = [
-            'images_message' => 'Iamage upload successfully',
-            'image_status' => 202
+            "images_message" => "Image upload successfully",
+            "image_status" => 202
         ];
 
         return $response;

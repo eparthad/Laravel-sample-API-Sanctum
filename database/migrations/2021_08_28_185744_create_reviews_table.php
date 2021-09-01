@@ -19,6 +19,7 @@ class CreateReviewsTable extends Migration
             $table->string('email');
             $table->string('description')->nullable();
             $table->foreignId('product_id')->constrained();
+            $table->tinyInteger('status')->default('0');
             $table->timestamps();
         });
     }

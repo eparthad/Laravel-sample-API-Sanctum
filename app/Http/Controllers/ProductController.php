@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\ProductImage;
+use App\Models\ProductTag;
+use App\Models\Review;
 use Illuminate\Http\Request;
 use Image;
 
@@ -24,7 +26,16 @@ class ProductController extends Controller
      */
     public function index()
     {
-        return Product::all();
+        $product = Product::with(['product_images','tags'])
+                            ->latest()
+                            ->paginate( 5 );
+
+        $response = [
+            "message" => "Products found successfully",
+            "product" => $product,
+        ];
+
+        return response()->json($response, 200);
     }
 
     /**
@@ -41,11 +52,11 @@ class ProductController extends Controller
             'category_id' => ['required', 'integer'],
             'description' => ['required'],
             'price' => ['required', 'numeric'],
+            'images.*' => ['required','mimes:jpeg,jpg,png,gif','max:10000'],
+            'tag.*' => ['required', 'integer']
         ]);
-
-        $product = Product::create($request->all());
-
         
+        $product = Product::create($request->all());
 
         if(!$product){
             $response = [
@@ -55,9 +66,12 @@ class ProductController extends Controller
             return response()->json($response, 417);
 
         }else{
-
+            
             // Upload multiple image
             $imageResponse = $this->commonImageUpload( $request, $product->id );
+
+            // Insert product's tag into pivot table
+            $product->tags()->attach($request->tag);
 
             $response = [
                 "message" => "Product created successfully",
@@ -118,6 +132,8 @@ class ProductController extends Controller
             'category_id' => ['required', 'integer'],
             'description' => ['required'],
             'price' => ['required', 'numeric'],
+            'images.*' => ['mimes:jpeg,jpg,png,gif','max:10000'],
+            'tag.*' => [ 'integer']
         ]);
 
         $updatedProduct = $product->update($request->all());
@@ -132,14 +148,23 @@ class ProductController extends Controller
         }else{
         
             // Upload multiple image
-            $imageResponse = $this->commonImageUpload( $request, $product->id );
+            if($request->file( 'images' )){
+                $imageResponse = $this->commonImageUpload( $request, $product->id );
+            }
+
+            // Insert product's tag into pivot table
+            if($request->tag){
+                $product->tags()->sync($request->tag);
+            }
 
             $response = [
                 "message" => "Product updated successfully",
                 "product" => $updatedProduct,
             ];
 
-            $response = array_merge($response, $imageResponse);
+            if(!empty($imageResponse)){
+                $response = array_merge($response, $imageResponse);
+            }
     
             return response()->json($response, 202);
         }
@@ -185,16 +210,63 @@ class ProductController extends Controller
     }
 
 
-    private function commonImageUpload( $request, $productId )
+    /**
+     * Display a listing of the resource without authenticate.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function allProducts()
+    {   
+        $product = Product::with(['category','tags'])
+                            ->latest()
+                            ->paginate( 5 );
+
+        $response = [
+            "message" => "Products found successfully",
+            "product" => $product,
+        ];
+
+        return response()->json($response, 200);
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function productDetails($id)
     {
-        if(empty($request->images)){
+        $product = Product::with(['category','tags','product_images','approvedReviews'])
+                            ->findOrFail($id);
+
+        $response = [
+            "message" => "Product found successfully",
+            "product" => $product,
+        ];
+
+        return response()->json($response, 302);
+    }
+
+
+
+
+    private function commonImageUpload( $request, $productId )
+    {   
+        if(empty($request->file( 'images' ))){
             $response = [
                 "images" => "No image found to upload",
             ];
+
+            return $response;
         }
 
         $data = null;
-        $allowedfileExtension=['pdf','jpg','png'];
+
+        // Check for Product's image folder exit or not
+        if (!file_exists($this->productImagePath)) {
+            mkdir($this->productImagePath, 666, true);
+        }
 
         foreach($request->file( 'images' ) as $image){
 
@@ -206,21 +278,17 @@ class ProductController extends Controller
             $imageUploadResponse = Image::make( $image )->save( $this->productImagePath . $fileName );
 
             // Push into array for saving all together
-            if(in_array($fileExtention,$allowedfileExtension)){
-                $temp = null;
-                $temp['product_id'] = $productId;
-                $temp['image'] = $fileName;
-    
-                $data[] = $temp;
-            }else {
-                $response = [
-                    "images_message" => "Invalid file format",
-                    "image_status" => 422
-                ];
+            $temp = null;
+            $temp['product_id'] = $productId;
+            $temp['image'] = $fileName;
 
-                return $response;
+            if ($request->isMethod('post')) {
+                $temp['created_at'] = \Carbon\Carbon::now()->toDateTimeString();
             }
-            
+
+            $temp['updated_at'] = \Carbon\Carbon::now()->toDateTimeString();
+
+            $data[] = $temp;
         }
 
         // Save all image 
@@ -232,7 +300,6 @@ class ProductController extends Controller
         ];
 
         return $response;
-
     }
 
     

@@ -27,6 +27,10 @@ Route::post('/login', [UserController::class, 'login']);
 // Review
 Route::post('/review/store', [ReviewController::class, 'store']);
 
+// Product 
+Route::get('/all-products', [ProductController::class, 'allProducts']);
+Route::get('/product-datails/{product}', [ProductController::class, 'productDetails']);
+
 Route::group(['middleware' => ['auth:sanctum']], function(){
 
     // Product 
@@ -34,10 +38,14 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
     Route::resource('products', ProductController::class);
 
     //Category
-    Route::resource('categorys', CategoryController::class);
+    Route::resource('categories', CategoryController::class)->except(['edit']);
 
     //Tag
     Route::resource('tags', TagController::class)->except(['create','edit']);
+
+    // Review
+    Route::get('/review', [ReviewController::class, 'index']);
+    Route::get('/review/status/{review}', [ReviewController::class, 'reviewStatus']);
 
     Route::post('/logout', [UserController::class, 'logout']);
 });

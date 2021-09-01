@@ -7,6 +7,20 @@ use App\Models\Review;
 
 class ReviewController extends Controller
 {
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        $review = Review::latest()->paginate( 5 );
+
+        return response()->json($review, 200);
+    }
+
+
     /**
      * Store a newly created resource in storage.
      *
@@ -17,7 +31,7 @@ class ReviewController extends Controller
     {
         $request->validate([
             'name' => ['required', 'max:255'],
-            'email'=> ['required'],
+            'email'=> ['required','email'],
             'description' => ['required'],
             'product_id' => ['required'],
         ]);
@@ -40,4 +54,25 @@ class ReviewController extends Controller
             return response()->json($response, 201);
         }
     }
+
+    public function reviewStatus(Review $review)
+    {   
+        if($review->status){
+            $status = 0;
+        }else{
+            $status = 1;
+        }
+
+        $review->status = $status;
+        $review->save();
+
+        $response = [
+            "message" => "Review updated successfully",
+            "review" => $review,
+        ];
+
+        return response()->json($response, 201);
+    }
+
+
 }

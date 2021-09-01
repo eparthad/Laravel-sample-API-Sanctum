@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Category;
+use Illuminate\Support\Facades\DB;
 
 class CategoryController extends Controller
 {
@@ -96,7 +97,7 @@ class CategoryController extends Controller
         $request->validate([
             'name' => ['required', 'max:255'],
         ]);
-
+        
         $updatedCategory = $category->update($request->all());
 
         if(!$updatedCategory){

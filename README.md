@@ -1,4 +1,7 @@
-<h1 align="center">API Based Laravel Project Using Sanctum</h1>
+<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a>
+<h1 align="center">Laravel Based API Project Using Sanctum</h1>
+</p>
+
 
 <p align="center">
 <a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
@@ -9,16 +12,26 @@
 
 ## About This Project
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+This is a simple API based project on <b>Laravel</b>. For authentication here i used <b>"Sanctum"</b> package. Here user has one role only which is admin. An admin can add/edit/delete <b>"category","tag", "products"</b>. Without Authentication guest can get product list, product details and also can submit product's review. Later this review's can found with product after admin's approval.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Project Goal
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- Implementing Sanctum for Auth
+- CRUD with upload multiple file
+- Implementing relationship like One to Many(category-product, product-image, product-review), Many to Many(product-tag)
+- Event & Listener
+- Sending email
+- Factory & seeding
+
+Note: In future like to implement Task Scheduler, Job Queue etc
+
+## Project Setup Instruction
+
+- First clone the project
+- Set your database configration in .env file
+- Run "php artisan migrate:fresh --seed" for migrating database & populating data
+- Default <b>Email: admin@admin.com & Password: 123456</b>
+- For email notification after a <b>review</b> submit, set mail configration in .env file
+
 
 

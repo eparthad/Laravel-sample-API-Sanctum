@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ProductReviewed;
 use Illuminate\Http\Request;
 use App\Models\Review;
 
@@ -18,6 +19,30 @@ class ReviewController extends Controller
         $review = Review::latest()->paginate( 5 );
 
         return response()->json($review, 200);
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show(Review $review)
+    {
+        if(!$review){
+            $response = [
+                "message" => "Review not found",
+            ];
+    
+            return response()->json($response, 404);
+        }
+
+        $response = [
+            "message" => "Review found successfully",
+            "review" => $review,
+        ];
+
+        return response()->json($response, 302);
     }
 
 
@@ -50,8 +75,14 @@ class ReviewController extends Controller
                 "message" => "Review submitted successfully",
                 "review" => $review,
             ];
+
+            // Fire this event to get notify the Admin
+            if(env('MAIL_USERNAME') !== null && env('MAIL_PASSWORD') !== null)
+            {
+                event(new ProductReviewed($review));
+            }
     
-            return response()->json($response, 201);
+            // return response()->json($response, 201);
         }
     }
 

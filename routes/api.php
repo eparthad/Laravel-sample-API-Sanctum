@@ -21,7 +21,7 @@ use Illuminate\Support\Facades\Route;
 
 // Public Route
 
-Route::post('/register', [UserController::class, 'register']);
+// Route::post('/register', [UserController::class, 'register']);
 Route::post('/login', [UserController::class, 'login']);
 
 // Review
@@ -45,12 +45,11 @@ Route::group(['middleware' => ['auth:sanctum']], function(){
 
     // Review
     Route::get('/review', [ReviewController::class, 'index']);
+    Route::get('/review/{review}', [ReviewController::class, 'show'])->name('review.show');
     Route::get('/review/status/{review}', [ReviewController::class, 'reviewStatus']);
 
     Route::post('/logout', [UserController::class, 'logout']);
 });
-
-
 
 // Route::middleware('auth:api')->get('/user', function (Request $request) {
 //     return $request->user();

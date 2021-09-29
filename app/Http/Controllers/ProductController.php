@@ -68,7 +68,7 @@ class ProductController extends Controller
         }else{
             
             // Upload multiple image
-            $imageResponse = $this->commonImageUpload( $request, $product->id );
+            $imageResponse = $this->commonImageUpload( $request, $product);
 
             // Insert product's tag into pivot table
             $product->tags()->attach($request->tag);
@@ -149,7 +149,7 @@ class ProductController extends Controller
         
             // Upload multiple image
             if($request->file( 'images' )){
-                $imageResponse = $this->commonImageUpload( $request, $product->id );
+                $imageResponse = $this->commonImageUpload( $request, $product );
             }
 
             // Insert product's tag into pivot table
@@ -251,7 +251,7 @@ class ProductController extends Controller
 
 
 
-    private function commonImageUpload( $request, $productId )
+    private function commonImageUpload( $request, $product )
     {   
         if(empty($request->file( 'images' ))){
             $response = [
@@ -262,24 +262,25 @@ class ProductController extends Controller
         }
 
         $data = null;
-
+        
         // Check for Product's image folder exit or not
         if (!file_exists($this->productImagePath)) {
             mkdir($this->productImagePath, 666, true);
         }
 
+        $i = 1;
         foreach($request->file( 'images' ) as $image){
 
             // Processing image
             $fileExtention = $image->getClientOriginalExtension();
-            $fileName = date( 'Ymdhis.' ) . $fileExtention;
+            $fileName = date( "Ymdhis_$i." ) . $fileExtention;
 
             // Save image in product directory
             $imageUploadResponse = Image::make( $image )->save( $this->productImagePath . $fileName );
 
             // Push into array for saving all together
             $temp = null;
-            $temp['product_id'] = $productId;
+            $temp['product_id'] = $product->id;
             $temp['image'] = $fileName;
 
             if ($request->isMethod('post')) {
@@ -289,10 +290,13 @@ class ProductController extends Controller
             $temp['updated_at'] = \Carbon\Carbon::now()->toDateTimeString();
 
             $data[] = $temp;
+            $i++;
         }
 
         // Save all image 
-        ProductImage::insert($data);
+        
+        // ProductImage::insert($data);
+        $product->product_images()->createMany($data);
 
         $response = [
             "images_message" => "Image upload successfully",
